@@ -1,0 +1,39 @@
+{
+  "plugin_type": "extractors",
+  "name": "tap-csv",
+  "namespace": "tap_csv",
+  "variant": "meltano",
+  "label": "Comma Separated Values (CSV)",
+  "docs": "https://hub.meltano.com/extractors/tap-csv--meltano",
+  "repo": "https://gitlab.com/meltano/tap-csv",
+  "pip_url": "git+https://gitlab.com/meltano/tap-csv.git",
+  "description": "Generic data extractor of CSV (comma separated value) files",
+  "logo_url": "https://hub.meltano.com/assets/logos/extractors/csv.png",
+  "capabilities": [
+    "discover",
+    "catalog",
+    "state"
+  ],
+  "settings_group_validation": [
+    [
+      "files"
+    ],
+    [
+      "csv_files_definition"
+    ]
+  ],
+  "settings": [
+    {
+      "name": "files",
+      "kind": "array",
+      "description": "Array of objects with `entity`, `file`, and `keys` keys"
+    },
+    {
+      "name": "csv_files_definition",
+      "label": "CSV Files Definition",
+      "documentation": "https://gitlab.com/meltano/tap-csv#run",
+      "description": "Project-relative path to JSON file holding array of objects with `entity`, `file`, and `keys` keys",
+      "placeholder": "Ex. files-def.json"
+    }
+  ]
+}

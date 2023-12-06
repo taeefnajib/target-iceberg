@@ -1,0 +1,33 @@
+version: 1
+send_anonymous_usage_stats: true
+project_id: target-icebergdb
+default_environment: test
+environments:
+- name: test
+plugins:
+  extractors:
+  - name: tap-csv
+    variant: meltano
+    pip_url: git+https://gitlab.com/meltano/tap-csv.git
+    config:
+      files:
+        - entity: values
+          file: data-source/customers.csv
+          keys:
+            - id
+  loaders:
+  - name: target-icebergdb
+    namespace: target_icebergdb
+    pip_url: -e .
+    capabilities:
+    - about
+    - stream-maps
+    - record-flattening
+    settings:
+    - name: username
+    - name: password
+      kind: password
+    - name: start_date
+      value: '2010-01-01T00:00:00Z'
+    config:
+      start_date: '2010-01-01T00:00:00Z'
