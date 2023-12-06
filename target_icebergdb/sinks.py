@@ -12,13 +12,14 @@ from datetime import datetime
 
 class icebergdbSink(BatchSink):
     """icebergdb target sink class."""
-    def __init__(self, target, schema, stream_name, key_properties) -> None:
+    def __init__(self, target, schema, stream_name,key_properties) -> None:
         super().__init__(
             target=target,
             schema=schema,
             stream_name=stream_name,
             key_properties=key_properties,
         )
+
 
     def start_batch(self, context: dict) -> None:
         """Start a batch.
@@ -32,7 +33,7 @@ class icebergdbSink(BatchSink):
         # Sample:
         # ------
         batch_key = context["batch_id"]
-        context["file_path"] = "data-source/customers.csv"
+        self.rows = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record.
@@ -44,11 +45,12 @@ class icebergdbSink(BatchSink):
             record: Individual record in the stream.
             context: Stream partition or context dictionary.
         """
+
         # Sample:
         # ------
         # with open(context["file_path"], "a") as csvfile:
         #     csvfile.write(record)
-        pass
+        self.rows.append(record)
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written.
@@ -60,22 +62,18 @@ class icebergdbSink(BatchSink):
         # ------
         # client.upload(context["file_path"])  # Upload file
         # Path(context["file_path"]).unlink()  # Delete local copy
-
-
         conf = (
             pyspark.SparkConf()
                 .setAppName('IcebergSparkApp')
         )
         spark = SparkSession.builder.config("hive.metastore.uris", "thrift://localhost:9083").enableHiveSupport().config(conf=conf).getOrCreate()
-        
-
-        df = pd.read_csv(context["file_path"])
+        df = pd.DataFrame(self.rows)
         dataframe = spark.createDataFrame(df) 
 
         ## Turn Dataframe into a temporary view
         dataframe.createOrReplaceTempView("myview")
 
         ## Create new iceberg table in my configured catalog
-        spark.sql("CREATE TABLE IF NOT EXISTS testiceberged USING PARQUET AS (SELECT * FROM myview)")
+        spark.sql("CREATE TABLE IF NOT EXISTS icebergtable USING PARQUET AS (SELECT * FROM myview)")
         
 

@@ -15,6 +15,7 @@ plugins:
           file: data-source/customers.csv
           keys:
             - id
+
   loaders:
   - name: target-icebergdb
     namespace: target_icebergdb
