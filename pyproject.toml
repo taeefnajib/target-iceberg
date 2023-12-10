@@ -1,35 +1,32 @@
 [tool.poetry]
-name = "target-icebergdb"
+name = "target-iceberg"
 version = "0.0.1"
-description = "`target-icebergdb` is a Singer target for icebergdb, built with the Meltano Singer SDK."
+description = "`target-iceberg` is a Singer target for iceberg, built with the Meltano Singer SDK."
 readme = "README.md"
-authors = ["FirstName LastName <firstname.lastname@example.com>"]
+authors = ["Taeef Najib <taeefnajib@gmail.com>"]
 keywords = [
     "ELT",
-    "icebergdb",
+    "iceberg",
 ]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4"
-singer-sdk = { version="~=0.33.1" }
+singer-sdk = { version="~=0.34.0" }
 fs-s3fs = { version = "~=1.1.1", optional = true }
 requests = "~=2.31.0"
 pyspark = "3.5.0"
 pandas = ">=2.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = ">=7.1.2"
-singer-sdk = { version="~=0.33.1", extras = ["testing"] }
+pytest = ">=7.4.0"
+singer-sdk = { version="~=0.34.0", extras = ["testing"] }
 
 [tool.poetry.extras]
 s3 = ["fs-s3fs"]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-
 [tool.ruff]
-src = ["target_icebergdb"]
+src = ["target_iceberg"]
 target-version = "py37"
 
 [tool.ruff.lint]
@@ -45,7 +42,7 @@ select = ["ALL"]
 allow-star-arg-any = true
 
 [tool.ruff.lint.isort]
-known-first-party = ["target_icebergdb"]
+known-first-party = ["target_iceberg"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -56,4 +53,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 # CLI declaration
-target-icebergdb = 'target_icebergdb.target:Targeticebergdb.cli'
+target-iceberg = 'target_iceberg.target:Targeticeberg.cli'

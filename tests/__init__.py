@@ -1,1 +1,1 @@
-"""Test suite for target-icebergdb."""
+"""Test suite for target-iceberg."""

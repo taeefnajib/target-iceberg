@@ -7,7 +7,7 @@ import typing as t
 import pytest
 from singer_sdk.testing import get_target_test_class
 
-from target_icebergdb.target import Targeticebergdb
+from target_iceberg.target import Targeticeberg
 
 # TODO: Initialize minimal target config
 SAMPLE_CONFIG: dict[str, t.Any] = {}
@@ -15,12 +15,12 @@ SAMPLE_CONFIG: dict[str, t.Any] = {}
 
 # Run standard built-in target tests from the SDK:
 StandardTargetTests = get_target_test_class(
-    target_class=Targeticebergdb,
+    target_class=Targeticeberg,
     config=SAMPLE_CONFIG,
 )
 
 
-class TestTargeticebergdb(StandardTargetTests):  # type: ignore[misc, valid-type]
+class TestTargeticeberg(StandardTargetTests):  # type: ignore[misc, valid-type]
     """Standard Target Tests."""
 
     @pytest.fixture(scope="class")
@@ -33,7 +33,7 @@ class TestTargeticebergdb(StandardTargetTests):  # type: ignore[misc, valid-type
         Example usage can be found in the SDK samples test suite:
         https://github.com/meltano/sdk/tree/main/tests/samples
         """
-        yield "resource"
+        return "resource"
 
 
 # TODO: Create additional tests as appropriate for your target.

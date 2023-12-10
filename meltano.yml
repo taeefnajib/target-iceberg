@@ -1,6 +1,6 @@
 version: 1
 send_anonymous_usage_stats: true
-project_id: target-icebergdb
+project_id: target-iceberg
 default_environment: test
 environments:
 - name: test
@@ -11,24 +11,46 @@ plugins:
     pip_url: git+https://gitlab.com/meltano/tap-csv.git
     config:
       files:
-        - entity: values
-          file: data-source/customers.csv
-          keys:
-            - id
-
+      - entity: values
+        file: demo-data/dummydata.csv
+        keys:
+        - reg
   loaders:
-  - name: target-icebergdb
-    namespace: target_icebergdb
+  - name: target-iceberg
+    namespace: target_iceberg
     pip_url: -e .
     capabilities:
     - about
     - stream-maps
     - record-flattening
     settings:
-    - name: username
-    - name: password
-      kind: password
-    - name: start_date
-      value: '2010-01-01T00:00:00Z'
-    config:
-      start_date: '2010-01-01T00:00:00Z'
+    - name: table_name
+      kind: string
+      label: Iceberg Table Name
+      required: true
+    - name: aws_access_key
+      kind: string
+      label: AWS Access Key
+      secret: true
+      required: true
+    - name: aws_secret_key
+      kind: string
+      label: AWS Secret Key
+      secret: true
+      required: true
+    - name: aws_region
+      kind: string
+      label: AWS Region
+      required: true
+    - name: hive_thrift_uri
+      kind: string
+      label: Hive Thrift URI
+      required: true
+    - name: warehouse_uri
+      kind: string
+      label: Warehouse URI
+      required: true
+    - name: partition_by
+      kind: array
+      label: Partition By
+      required: false
