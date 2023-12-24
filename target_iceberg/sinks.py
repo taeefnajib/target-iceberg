@@ -9,6 +9,9 @@ from pyspark.sql import SparkSession
 from pyspark.sql import Row
 from pyspark.sql.dataframe import DataFrame
 import os
+import math
+import sys
+import re
 import pyspark.sql.functions as F
 
 
@@ -62,26 +65,31 @@ class icebergSink(BatchSink):
         self.rows.append(record)
 
     def init_spark(self):
+        partition_size = (os.cpu_count())*3
         conf = SparkConf() \
             .setAppName("Apache Iceberg with PySpark") \
-            .setMaster("local[2]") \
+            .setMaster("local[*]") \
             .setAll([
-                ("spark.driver.memory", "1g"),
-                ("spark.executor.memory", "2g"),
-                ("spark.sql.shuffle.partitions", "40"),
-
+                ("spark.driver.memory", "4g"),
+                ("spark.executor.memory", "4g"),
+                ("spark.sql.shuffle.partitions", f"{partition_size}"),
+                ('spark.sql.adaptive.coalescePartitions.initialPartitionNum', f"{(os.cpu_count())}"),
+                ('spark.sql.adaptive.coalescePartitions.parallelismFirst', 'false'),
+                ('spark.sql.files.minPartitionNum', "1"),
+                ('spark.sql.files.maxPartitionBytes', '500mb'),
+              
                 # Add Iceberg SQL extensions like UPDATE or DELETE in Spark
                 ("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"),
 
-                # Register `airbyte`
-                ("spark.sql.catalog.airbyte", "org.apache.iceberg.spark.SparkCatalog"),
-                ('spark.sql.catalog.airbyte.type', 'hive'),
-                ('spark.sql.catalog.airbyte.uri', self.hive_thrift_uri),
-                ('spark.sql.catalog.airbyte.warehouse', self.warehouse_uri),
+                # Register `hive_catalog`
+                ("spark.sql.catalog.hive_catalog", "org.apache.iceberg.spark.SparkCatalog"),
+                ('spark.sql.catalog.hive_catalog.type', 'hive'),
+                ('spark.sql.catalog.hive_catalog.uri', self.hive_thrift_uri),
+                ('spark.sql.catalog.hive_catalog.warehouse', self.warehouse_uri),
 
                 # Configure Warehouse on MinIO
-                ("spark.sql.catalog.airbyte.io-impl", "org.apache.iceberg.aws.s3.S3FileIO"),
-                ("spark.sql.catalog.airbyte.s3.path-style-access", "true"),
+                ("spark.sql.catalog.hive_catalog.io-impl", "org.apache.iceberg.aws.s3.S3FileIO"),
+                ("spark.sql.catalog.hive_catalog.s3.path-style-access", "true"),
             ])
         spark = SparkSession.builder.config(conf=conf).enableHiveSupport().getOrCreate()
 
@@ -90,11 +98,18 @@ class icebergSink(BatchSink):
     def create_dataframe(self, spark: SparkSession, record: list):
         rows_rdd = spark.sparkContext.parallelize(record)
         rows = rows_rdd.map(lambda x: Row(**x))
-
-        return spark.createDataFrame(rows)
+        # Function to clean field names
+        def clean_field_name(name):
+            return re.sub(r'[\s\.,]+', '_', name)
+        df = spark.createDataFrame(rows)
+        # Rename the columns of the DataFrame
+        for col_name in df.columns:
+            df = df.withColumnRenamed(col_name, clean_field_name(col_name))
+        return df
+       
     
     def create_table(self, spark: SparkSession, df: DataFrame):
-        table_name = f"airbyte.default.{self.table_name}"
+        table_name = f"hive_catalog.default.{self.table_name}"
         
         # Check if the table exists
         if spark.catalog.tableExists(table_name):
@@ -123,9 +138,8 @@ class icebergSink(BatchSink):
         spark.sql(create_table_query)
     
     def write_data(self, spark: SparkSession, df: DataFrame):
-        table_name = f"airbyte.default.{self.table_name}"
+        table_name = f"hive_catalog.default.{self.table_name}"
         df \
-        .withColumn("date", F.to_date(F.col("date"))) \
         .writeTo(f"{table_name}") \
         .append()
 
